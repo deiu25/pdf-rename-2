@@ -34,24 +34,32 @@ def upload_files():
     for file in uploaded_files:
         if file and file.filename.endswith('.pdf'):
             new_filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(new_filename)
+            file.save(new_filename)  
             try:
                 with pdfplumber.open(new_filename) as pdf:
                     content = pdf.pages[0].extract_text()
                 series_number = extract_series_number(content)
                 if series_number:
                     final_filename = f"{series_number}.pdf"
-                    os.rename(new_filename, os.path.join(app.config['UPLOAD_FOLDER'], final_filename))
-                    responses.append({'new_name': final_filename, 'download_url': f'/download/{final_filename}'})
+                    final_path = os.path.join(app.config['UPLOAD_FOLDER'], final_filename)
+                    if os.path.exists(final_path): 
+                        responses.append({'error': f'File {final_filename} already exists.'})
+                        os.remove(new_filename)  
+                    else:
+                        os.rename(new_filename, final_path)
+                        responses.append({'new_name': final_filename, 'download_url': f'/download/{final_filename}'})
                 else:
                     responses.append({'error': 'Series number not found'})
+                    os.remove(new_filename) 
             except Exception as e:
                 responses.append({'error': str(e)})
-                os.remove(new_filename)
+                if os.path.exists(new_filename):
+                    os.remove(new_filename)
         else:
             responses.append({'error': 'Invalid file format'})
     all_files_ready = True  
     return jsonify(responses)
+
 
 @app.route('/download-all', methods=['GET'])
 def download_all_files():
@@ -64,33 +72,25 @@ def download_all_files():
                 if file.endswith('.pdf'):
                     zf.write(os.path.join(root, file), file)
 
-    def remove_files(response):
-        try:
-            os.remove(zip_path)
-            for root, dirs, files in os.walk(app.config['UPLOAD_FOLDER']):
-                for file in files:
-                    if file.endswith('.pdf'):
-                        os.remove(os.path.join(root, file))
-        except Exception as e:
-            app.logger.error('Eroare la ștergerea fișierelor: %s', str(e))
-        return response
-
-    @after_this_request
-    def apply_remove_files(response):
-        return remove_files(response)
-
     return send_file(zip_path, as_attachment=True)
 
 @app.route('/cleanup', methods=['POST'])
 def cleanup_files():
     try:
+        zip_filename = 'All_PDFs.zip'
+        zip_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_filename)
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
         for root, dirs, files in os.walk(app.config['UPLOAD_FOLDER']):
             for file in files:
                 file_path = os.path.join(root, file)
-                os.remove(file_path)
+                if file.endswith('.pdf'):
+                    os.remove(file_path)
         return jsonify({'status': 'success', 'message': 'Files cleaned up successfully.'}), 200
     except Exception as e:
+        app.logger.error('Eroare la ștergerea fișierelor: %s', str(e))
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 @app.route('/files-ready', methods=['GET'])
 def check_files_ready():
