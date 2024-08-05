@@ -4,12 +4,20 @@ import React, { useState } from 'react';
 const FileUpload = ({ onUploadComplete }) => {
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState([]);
+    const [error, setError] = useState('');
 
     const handleFileChange = (event) => {
         setFiles(event.target.files);
+        if (event.target.files.length > 0) {
+            setError('');
+        }
     };
 
     const uploadFiles = () => {
+        if (files.length === 0) {
+            setError('Please select a file to upload.');
+            return;
+        }
         setLoading(true);
         const formData = new FormData();
         for (let i = 0; i < files.length; i++) {
@@ -32,18 +40,19 @@ const FileUpload = ({ onUploadComplete }) => {
     };
 
     return (
-        <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <h1 className="block w-full text-center text-gray-800 text-2xl font-bold mb-6">Upload a PDF file</h1>
+        <div className="bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h1 className="block w-full text-center text-purple-500 text-2xl font-bold mb-6">Upload a PDF file</h1>
             <div className="mb-4">
                 <input type="file" accept=".pdf" multiple onChange={handleFileChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline" />
             </div>
+            {error && <p className="text-red-500 text-xs italic">{error}</p>}
             <div className="flex items-center justify-between">
                 <button onClick={uploadFiles} disabled={loading}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline relative">
+                    className="bg-purple-600 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline relative">
                     Upload
                     {loading && (
-                        <div className="absolute inset-0 flex justify-center items-center bg-blue-500 bg-opacity-75">
+                        <div className="absolute inset-0 flex justify-center items-center bg-purple-700 bg-opacity-75">
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -54,9 +63,6 @@ const FileUpload = ({ onUploadComplete }) => {
                             </svg>
                         </div>
                     )}
-                </button>
-                <button id="downloadAllBtn" className="hidden bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Download All as ZIP
                 </button>
             </div>
         </div>

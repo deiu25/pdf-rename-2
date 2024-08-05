@@ -22,30 +22,26 @@ const App = () => {
   };
 
   const downloadAll = () => {
-    fetch("/download-all")
-      .then((response) => {
-        if (response.ok) {
-          window.location.href = response.url;
-          fetch("/cleanup", {
-            method: "POST",
-          })
-            .then((res) => res.json())
-            .then((data) => console.log(data.message))
-            .catch((error) => console.error("Error:", error));
-        }
-      })
-      .catch((error) => console.error("Error:", error));
-  };
+    window.location.href = '/download-all';
+    setTimeout(() => {
+        fetch('/cleanup', {
+            method: 'POST'
+        })
+            .then(response => response.json())
+            .then(data => console.log(data.message))
+            .catch(error => console.error('Error:', error));
+    }, 30000);
+};
 
   return (
-    <div className="bg-gray-100 font-sans leading-normal tracking-normal container mx-auto mt-10">
-      <div className="flex justify-center">
+    <div className="bg-gray-900 font-sans leading-normal tracking-normal container mx-auto mt-10">
+      <div className="container flex justify-center mx-auto p-4">
         <div className="w-full max-w-xl">
           <FileUpload onUploadComplete={handleUploadComplete} />
           <div className="flex items-center justify-between mb-4">
             {allFilesReady && (
               <button
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-purple-700 hover:bg-purple-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 onClick={downloadAll}
               >
                 Download All as ZIP
