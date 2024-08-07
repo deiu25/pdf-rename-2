@@ -12,3 +12,9 @@ ZIP File Download: Users can download the ZIP file directly from the application
 File Deletion: To optimize storage, the ZIP file and all processed PDFs are deleted post-download.
 
 The motivation behind PDF Renamer was to drastically reduce the time spent on manual data management tasks. Leveraging the power of Python and modern web technologies, this application turns a cumbersome full-day task into a swift, automated process.
+
+Run the command to install the dependencies:
+pip install -r requirements.txt
+
+Run the application:
+python app.py
